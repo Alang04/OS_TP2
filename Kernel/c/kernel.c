@@ -3,6 +3,7 @@
 #include "moduleLoader.h"
 #include "idtLoader.h"
 #include "kernelApi.h"
+#include "memoryManager.h"
 
 extern uint8_t text;
 extern uint8_t rodata;
@@ -42,6 +43,10 @@ void * initializeKernelBinary(void){
 
 	loadModules(&endOfKernelBinary, moduleAddresses);
 	clearBSS(&bss, &endOfKernel - &bss);
+
+	// inicializo el memoryManager
+	memoryManagerInit((void*)HEAP_START, HEAP_SIZE);
+
 	load_idt();
 	return getStackBase();
 }
