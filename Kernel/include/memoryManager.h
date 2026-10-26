@@ -1,6 +1,12 @@
 #ifndef MEMORY_MANAGER_H
 #define MEMORY_MANAGER_H
 
+// defino el tamaño del heap y su direccion de inicio
+//     El kernel está en 0x100000
+//     El userland está en 0x400000
+#define HEAP_START 0x6000000
+#define HEAP_SIZE 0x4000000
+
 #include <stdint.h>
 
 typedef struct {
