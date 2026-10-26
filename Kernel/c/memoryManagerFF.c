@@ -49,9 +49,39 @@ static uint64_t blocksused = 0;
 
 
 /**
- * Inicializa el memory manager
+ * Inicializa el memory manager: creamos un solo bloque libre que cubre todo el heap
  */
-void memoryManagerInit(void * ptr){
+void memoryManagerInit(void * start, uint64_t size){
+    
+    uint64_t begin = ALIGN_UP((uint64_t)start);
+
+    uint64_t end = ALIGN_DOWN((uint64_t)start + size);
+
+    firstBlock = NULL;
+    usedMemory = 0;
+    blocksused = 0;
+
+    // chequeamos que no haya errores:
+    // * dimension negativa
+    // * dimension demasiado chica
+    if(end <= begin || (end - begin) <= MIN_SPLIT_SIZE) {
+        
+        heapStart = heapEnd = 0;
+        
+        return;
+    }
+
+
+    // ya chequeadas las dimensiones creamos el bloque inicial
+    heapStart = begin;
+    heapEnd = end;
+
+    firstBlock = (Block*) begin;
+
+    firstBlock->size = (end - begin) - HEADER_SIZE;
+    firstBlock->magic = MAGIC_FREE;
+    firstBlock->next = NULL;
+    firstBlock->prev = NULL;
 
 }
 
@@ -61,6 +91,56 @@ void memoryManagerInit(void * ptr){
   */
 void * memoryManagerAlloc(uint64_t size){
 
+    // chequeamos:
+    //  * que se haya inicializado el heap
+    //  * que el tamaño pedido sea mayor a 0
+    //  * que el tamaño pedido no sea mayor al tamaño del heap
+
+    if(size == 0 || firstBlock == NULL || size > (heapEnd - heapStart)) {
+        return NULL;
+    }
+
+    size = ALIGN_UP(size);
+
+    // recorro lista de bloques buscando el primer bloque libre con espacio suficiente
+    for(Block * b = firstBlock; b != NULL; b = b->next) {
+
+        // bloque ocupado o demasiado chico
+        if(b->magic != MAGIC_FREE || b->size < size) {
+            continue;
+        }
+
+        // bloque libre y suficientemente grande para partirlo
+        if(b->size >= size + MIN_SPLIT_SIZE) {
+
+            
+            // parto entre b (bloque a ocupar) y rest (bloque libre que queda)
+            Block * rest = (Block *)((uint64_t)(b + 1) + size);
+            rest->size = b->size - size - HEADER_SIZE;
+            rest->magic = MAGIC_FREE;
+            rest->prev = b;
+            rest->next = b->next;
+
+            if(b->next != NULL) {
+                b->next->prev = rest;
+            }
+            
+            b->next = rest;
+            b->size = size;
+
+            // ahora ya se que b tiene el tamaño exacto que necesito
+        }
+
+        // ocupo el bloque b
+        b->magic = MAGIC_USED;
+        usedMemory += b->size + HEADER_SIZE;
+        blocksused++;
+
+        return (void *)(b + 1); // devuelvo la dirección del bloque usable (después del header)
+
+    }
+
+    // no habia espacio disponible
     return NULL;
 }
 
