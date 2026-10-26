@@ -209,3 +209,15 @@ static void mergeWithNextBlock(Block * b) {
 	nextBlock->magic = 0; // evita que un free viejo reconozca el header absorbido
 
 }
+
+void memoryManagerGetStats(MemoryManagerStats * info) {
+    if(info == NULL) {
+        return;
+    }
+
+    info->totalMemory = heapEnd - heapStart;
+    info->usedMemory = usedMemory;
+    info->freeMemory = (heapEnd - heapStart) - usedMemory;
+    info->blocksUsed = blocksused;
+
+}
