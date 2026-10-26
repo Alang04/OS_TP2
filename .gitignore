@@ -9,3 +9,6 @@
 
 #Object files
 *.o
+
+#Marca del memory manager compilado
+.mm_*
