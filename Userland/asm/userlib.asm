@@ -14,6 +14,8 @@ GLOBAL sys_screen_width
 GLOBAL sys_screen_height
 GLOBAL sys_putpixel
 GLOBAL sys_fill_rect
+GLOBAL sys_malloc
+GLOBAL sys_free
 GLOBAL gen_invalid_opcode
 
 section .text
@@ -95,6 +97,16 @@ sys_putpixel:
 
 sys_fill_rect:
 	mov rax, 15
+	int 0x80
+	ret
+
+sys_malloc:
+	mov rax, 16
+	int 0x80
+	ret
+
+sys_free:
+	mov rax, 17
 	int 0x80
 	ret
 

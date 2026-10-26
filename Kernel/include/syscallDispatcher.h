@@ -22,5 +22,7 @@ void sys_putpixel(uint32_t color, uint64_t x, uint64_t y);
 void sys_fill_rect(uint64_t x, uint64_t y, uint64_t w, uint64_t h, uint32_t color);
 void sys_speaker_start(uint32_t freq);
 void sys_speaker_off(void);
+void * sys_malloc(uint64_t size);
+void sys_free(void * ptr);
 
 #endif

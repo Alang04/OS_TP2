@@ -8,6 +8,7 @@
 #define USERLIB_H
 
 #include <stdint.h>
+#include <stddef.h>
 
 #define STDOUT 1
 #define STDERR 2
@@ -60,6 +61,14 @@ uint64_t sys_screen_width(void);
 uint64_t sys_screen_height(void);
 void sys_putpixel(uint32_t color, uint64_t x, uint64_t y);
 void sys_fill_rect(uint64_t x, uint64_t y, uint64_t w, uint64_t h, uint32_t color);
+void * sys_malloc(uint64_t size);
+void sys_free(void * ptr);
+
+// Mini libc usada por los tests de la catedra (c/libc.c; memset en _loader.c)
+void * malloc(size_t size);
+void free(void * ptr);
+void * memset(void * dest, int value, size_t count);
+int printf(const char * fmt, ...);
 uint64_t putchar(char c);
 char getchar(void);
 void processLine(char * buff, uint32_t * history_len);

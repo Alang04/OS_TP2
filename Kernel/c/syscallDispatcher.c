@@ -5,6 +5,7 @@
 #include "defs.h"
 #include "time.h"
 #include "sound.h"
+#include "memoryManager.h"
 
 // Aumenta el tamaño de fuente por defecto
 void sys_increase_fontsize(){
@@ -80,6 +81,16 @@ void sys_fill_rect(uint64_t x, uint64_t y, uint64_t w, uint64_t h, uint32_t colo
     fillRect(x, y, w, h, color);
 }
 
+// Reserva 'size' bytes del heap, devuelve NULL si no hay memoria suficiente
+void * sys_malloc(uint64_t size){
+    return memoryManagerAlloc(size);
+}
+
+// Libera un bloque reservado con sys_malloc
+void sys_free(void * ptr){
+    memoryManagerFree(ptr);
+}
+
 void * syscalls[CANT_SYS] = {
     &sys_registers,         // 0
     &sys_time,              // 1
@@ -96,5 +107,7 @@ void * syscalls[CANT_SYS] = {
     &sys_screen_width,      // 12
     &sys_screen_height,     // 13
     &sys_putpixel,          // 14
-    &sys_fill_rect          // 15
+    &sys_fill_rect,         // 15
+    &sys_malloc,            // 16
+    &sys_free               // 17
 };

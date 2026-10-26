@@ -3,6 +3,7 @@
 #include "../c/include/userlib.h"
 #include "../tron/include/tron_main.h"
 #include "../c/include/shell.h"
+#include "tests.h"
 
 static void tron_command_wrapper(void);
 
@@ -21,6 +22,14 @@ static Command commands[] = {
     {"bmKEY", bmKEY},
     {"tron", tron_command_wrapper},
     {0, 0},
+};
+
+static TestCommand testCommands[] = {
+    {"test_mm",   test_mm,        "test_mm <max_memory>",     1},
+    {"test_proc", test_processes, "test_proc <max_processes>", 0},
+    {"test_prio", test_prio,      "test_prio <max_value>",    0},
+    {"test_sync", test_sync,      "test_sync <n> <use_sem>",  0},
+    {0, 0, 0, 0},
 };
 
 static void tron_command_wrapper(void){
@@ -342,6 +351,11 @@ void help(){
     shellPrintString("bmMEM     ->   benchmark de MEM.\n");
     shellPrintString("bmKEY     ->   benchmark de teclado.\n");
     shellPrintString("tron      ->   inicia el juego TRON.\n");
+    shellPrintString("\nTests provistos por la catedra: \n");
+    shellPrintString("test_mm <max_memory>       ->   pide y libera bloques chequeando que no se solapen.\n");
+    shellPrintString("test_proc <max_processes>  ->   crea, bloquea, desbloquea y mata procesos.\n");
+    shellPrintString("test_prio <max_value>      ->   compara tiempos de ejecucion segun prioridad.\n");
+    shellPrintString("test_sync <n> <use_sem>    ->   inc/dec concurrentes con (1) o sin (0) semaforos.\n");
 }
 
 // Limpia la pantalla
@@ -507,9 +521,42 @@ void processLine(char * buff, uint32_t * history_len){
         return;
     }
 
+    // Separa la linea en palabras (in place): argv[0] es el comando
+    char * argv[MAX_ARGS];
+    uint64_t argc = 0;
+    for(char * p = buff; *p != '\0' && argc < MAX_ARGS; ){
+        while(*p == ' '){
+            *p++ = '\0';
+        }
+        if(*p == '\0'){
+            break;
+        }
+        argv[argc++] = p;
+        while(*p != '\0' && *p != ' '){
+            p++;
+        }
+    }
+
+    if(argc == 0){
+        return;
+    }
+
     for(int i = 0; commands[i].name != 0; i++){
-        if(strcmp(buff, commands[i].name) == 0){
+        if(strcmp(argv[0], commands[i].name) == 0){
             commands[i].function();
+            return;
+        }
+    }
+
+    for(int i = 0; testCommands[i].name != 0; i++){
+        if(strcmp(argv[0], testCommands[i].name) == 0){
+            if(!testCommands[i].ready){
+                shellPrintString("Este test requiere procesos y semaforos, aun no implementados.\n");
+            } else if(testCommands[i].function(argc - 1, argv + 1) == -1){
+                shellPrintString("Uso: ");
+                shellPrintString(testCommands[i].usage);
+                shellNewline();
+            }
             return;
         }
     }
