@@ -1,7 +1,10 @@
 /**
  * 
  * Vamos a implementar un memory manager con el algoritmo tipo "first fit"
+ * Solo se compila si NO se define USE_BUDDY (ver Kernel/Makefile)
  */
+
+#ifndef USE_BUDDY
 
 #include <stddef.h>
 #include "memoryManager.h"
@@ -48,6 +51,7 @@ static uint64_t heapEnd = 0;
 static uint64_t usedMemory = 0;
 static uint64_t blocksused = 0;
 
+static void mergeWithNextBlock(Block * b);
 
 
 /**
@@ -221,3 +225,5 @@ void memoryManagerGetStats(MemoryManagerStats * info) {
     info->blocksUsed = blocksused;
 
 }
+
+#endif
