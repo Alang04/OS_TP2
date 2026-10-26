@@ -6,7 +6,9 @@
 #include <stddef.h>
 #include "memoryManager.h"
 
+// alineamos a 16 bytes
 #define ALIGNMENT 16
+
 // macros para alinear
 #define ALIGN_UP(x) (((x) + (ALIGNMENT - 1)) & ~(uint64_t)(ALIGNMENT - 1))
 #define ALIGN_DOWN(x) ((x) & ~(uint64_t)(ALIGNMENT - 1))
@@ -146,7 +148,64 @@ void * memoryManagerAlloc(uint64_t size){
 
 /**
  * Libera memoria reservada
+ * 
+ * vamos a fusionar el bloque liberado con sus vecinos si tiene libres
  */
 void memoryManagerFree(void * ptr){
+
+    // chequeamos que la dirección pasada no sea NULL y que el heap esté inicializado
+    if(ptr == NULL || firstBlock == NULL) {
+        return;
+    }
+
+    uint64_t blockAddress = (uint64_t)ptr;
+
+    // chequeamos que la direccion pasada sea válida:
+    // * que esté dentro del heap
+    // * que esté alineada a 16 bytes
+    if(blockAddress < heapStart + HEADER_SIZE || blockAddress >= (uint64_t)heapEnd || blockAddress % ALIGNMENT != 0) {
+        return;
+    }
+
+    Block * b = (Block *) ptr - 1;
+
+    // chequeamos que el bloque esté ocupado, evitamos ptr invalido o hacer dos veces free
+    if(b->magic != MAGIC_USED) {
+        return;
+    }
+
+    // liberamos el bloque
+    b->magic = MAGIC_FREE;
+    usedMemory -= b->size + HEADER_SIZE;
+    blocksused--;
+
+    // si se puede, fusionamos con el bloque siguiente
+    mergeWithNextBlock(b);
+
+    // si el bloque anterior esta libre, fuisonamos tambien con ese
+    if(b->prev != NULL && b->prev->magic == MAGIC_FREE) {
+        mergeWithNextBlock(b->prev);
+    }
     
+}
+
+// Funcion auxiliar que fusiona un bloque con su siguiente si este está libre
+static void mergeWithNextBlock(Block * b) {
+
+    Block * nextBlock = b->next;
+
+    // si no hay bloque siguiente o no está libre, no hacemos nada
+    if(nextBlock == NULL || nextBlock->magic != MAGIC_FREE) {
+        return;
+    }
+
+    // fusionamos b con nextBlock
+    b->size += HEADER_SIZE + nextBlock->size;
+	b->next = nextBlock->next;
+	if(nextBlock->next != NULL){
+		nextBlock->next->prev = b;
+	}
+
+	nextBlock->magic = 0; // evita que un free viejo reconozca el header absorbido
+
 }
