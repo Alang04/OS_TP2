@@ -17,6 +17,10 @@ userland:
 image: kernel bootloader userland
 	$(MAKE) -C Image TARGET=$(TARGET) all
 
+# Compila usando el buddy system como memory manager (por defecto first fit)
+buddy:
+	$(MAKE) all MM=buddy
+
 # Convenience targets for explicit images
 image-qemu: TARGET=qemu
 image-qemu: image
@@ -70,7 +74,7 @@ docker-build: docker-start
 
 # Compila con el memory manager indicado: make docker-build-mm MM=buddy
 docker-build-mm: docker-start
-	docker exec -t $(CONTAINER) make -C /root $(MM)
+	docker exec -t $(CONTAINER) make -C /root all MM=$(MM)
 
 # Limpia dentro del contenedor
 docker-clean: docker-start
@@ -84,6 +88,6 @@ docker-shell: docker-start
 run:
 	$(QEMU) -hda $(IMAGE_FILE) $(QEMU_FLAGS)
 
-.PHONY: bootloader image collections kernel userland all clean \
+.PHONY: bootloader image collections kernel userland all clean buddy \
 	docker-pull docker-start docker-stop docker-rm docker-build docker-build-mm \
 	docker-clean docker-shell run
