@@ -21,12 +21,10 @@ typedef struct Command{
 typedef int64_t (*TestMain)(uint64_t argc, char *argv[]);
 
 // Tests de la catedra: reciben los argumentos tipeados luego del nombre.
-// 'ready' en 0 marca los que aun dependen de syscalls no implementadas.
 typedef struct TestCommand{
      char* name;
      TestMain function;
      char* usage;
-     uint8_t ready;
 } TestCommand;
 
 void shellPrintString(char *str);

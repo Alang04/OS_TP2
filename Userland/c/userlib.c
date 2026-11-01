@@ -25,11 +25,11 @@ static Command commands[] = {
 };
 
 static TestCommand testCommands[] = {
-    {"test_mm",   test_mm,        "test_mm <max_memory>",     1},
-    {"test_proc", test_processes, "test_proc <max_processes>", 1},
-    {"test_prio", test_prio,      "test_prio <max_value>",    1},
-    {"test_sync", test_sync,      "test_sync <n> <use_sem>",  0},
-    {0, 0, 0, 0},
+    {"test_mm",   test_mm,        "test_mm <max_memory>"},
+    {"test_proc", test_processes, "test_proc <max_processes>"},
+    {"test_prio", test_prio,      "test_prio <max_value>"},
+    {"test_sync", test_sync,      "test_sync <n> <use_sem>"},
+    {0, 0, 0},
 };
 
 static void tron_command_wrapper(void){
@@ -511,7 +511,7 @@ uint64_t putchar(char c){
 char getchar(){
     char c;
     while(sys_read(&c, 1) == 0)
-        ;
+        sys_yield();
     return c;
 }
 
@@ -556,11 +556,6 @@ void processLine(char * buff, uint32_t * history_len){
 
     for(int i = 0; testCommands[i].name != 0; i++){
         if(strcmp(argv[0], testCommands[i].name) == 0){
-            if(!testCommands[i].ready){
-                shellPrintString("Este test requiere semaforos, aun no implementados.\n");
-                return;
-            }
-
             int64_t pid = sys_create_process(testCommands[i].function, argv[0], argc - 1, argv + 1, !background);
             if(pid < 0){
                 shellPrintString("No se pudo crear el proceso.\n");

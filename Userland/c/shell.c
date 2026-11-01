@@ -94,6 +94,9 @@ void shellReadLine(char * buffer, uint64_t max){
                 }
                 lastBlink = now;
             }
+            // Sin input se cede el CPU para no gastar el quantum esperando teclas
+            // (provisorio hasta que la lectura de teclado sea bloqueante)
+            sys_yield();
         }
     }
 

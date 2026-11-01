@@ -1,5 +1,4 @@
 // Wrappers que usan los tests de la catedra sobre las syscalls del kernel.
-// TODO: conectar los semaforos (fase 2). Mientras tanto my_sem_open falla.
 #include <stdint.h>
 #include "userlib.h"
 #include "syscall.h"
@@ -55,20 +54,21 @@ int64_t my_unblock(uint64_t pid) {
   return sys_unblock(pid);
 }
 
+// test_sync espera un valor distinto de 0 si se pudo abrir
 int64_t my_sem_open(char *sem_id, uint64_t initialValue) {
-  return 0;
+  return sys_sem_open(sem_id, initialValue) == 0;
 }
 
 int64_t my_sem_wait(char *sem_id) {
-  return -1;
+  return sys_sem_wait(sem_id);
 }
 
 int64_t my_sem_post(char *sem_id) {
-  return -1;
+  return sys_sem_post(sem_id);
 }
 
 int64_t my_sem_close(char *sem_id) {
-  return -1;
+  return sys_sem_close(sem_id);
 }
 
 int64_t my_yield(void) {
