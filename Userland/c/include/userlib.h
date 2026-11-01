@@ -90,6 +90,10 @@ int64_t sys_block(int64_t pid);
 int64_t sys_unblock(int64_t pid);
 void sys_yield(void);
 int64_t sys_waitpid(int64_t pid);
+int64_t sys_sem_open(const char * name, uint64_t initialValue);
+int64_t sys_sem_wait(const char * name);
+int64_t sys_sem_post(const char * name);
+int64_t sys_sem_close(const char * name);
 
 // Mini libc usada por los tests de la catedra (c/libc.c; memset en _loader.c)
 void * malloc(size_t size);

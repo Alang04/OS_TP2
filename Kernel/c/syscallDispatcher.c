@@ -8,6 +8,7 @@
 #include "memoryManager.h"
 #include "process.h"
 #include "scheduler.h"
+#include "semaphore.h"
 
 // Aumenta el tamaño de fuente por defecto
 void sys_increase_fontsize(){
@@ -133,6 +134,22 @@ int64_t sys_waitpid(int64_t pid){
     return waitProcess(pid);
 }
 
+int64_t sys_sem_open(const char * name, uint64_t initialValue){
+    return semOpen(name, initialValue);
+}
+
+int64_t sys_sem_wait(const char * name){
+    return semWait(name);
+}
+
+int64_t sys_sem_post(const char * name){
+    return semPost(name);
+}
+
+int64_t sys_sem_close(const char * name){
+    return semClose(name);
+}
+
 void * syscalls[CANT_SYS] = {
     &sys_registers,         // 0
     &sys_time,              // 1
@@ -161,5 +178,9 @@ void * syscalls[CANT_SYS] = {
     &sys_block,             // 24
     &sys_unblock,           // 25
     &sys_yield,             // 26
-    &sys_waitpid            // 27
+    &sys_waitpid,           // 27
+    &sys_sem_open,          // 28
+    &sys_sem_wait,          // 29
+    &sys_sem_post,          // 30
+    &sys_sem_close          // 31
 };

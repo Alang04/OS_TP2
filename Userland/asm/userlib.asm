@@ -26,6 +26,10 @@ GLOBAL sys_block
 GLOBAL sys_unblock
 GLOBAL sys_yield
 GLOBAL sys_waitpid
+GLOBAL sys_sem_open
+GLOBAL sys_sem_wait
+GLOBAL sys_sem_post
+GLOBAL sys_sem_close
 GLOBAL gen_invalid_opcode
 
 section .text
@@ -167,6 +171,26 @@ sys_yield:
 
 sys_waitpid:
 	mov rax, 27
+	int 0x80
+	ret
+
+sys_sem_open:
+	mov rax, 28
+	int 0x80
+	ret
+
+sys_sem_wait:
+	mov rax, 29
+	int 0x80
+	ret
+
+sys_sem_post:
+	mov rax, 30
+	int 0x80
+	ret
+
+sys_sem_close:
+	mov rax, 31
 	int 0x80
 	ret
 
