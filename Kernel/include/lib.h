@@ -8,4 +8,8 @@ void * memcpy(void * destination, const void * source, uint64_t length);
 uint8_t inb(uint16_t port);
 void outb(uint16_t port, uint8_t value);
 
+// Spinlock con instruccion atomica (asm/libasm.asm)
+void acquireLock(uint8_t * lock);
+void releaseLock(uint8_t * lock);
+
 #endif
