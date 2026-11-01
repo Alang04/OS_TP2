@@ -26,8 +26,8 @@ static Command commands[] = {
 
 static TestCommand testCommands[] = {
     {"test_mm",   test_mm,        "test_mm <max_memory>",     1},
-    {"test_proc", test_processes, "test_proc <max_processes>", 0},
-    {"test_prio", test_prio,      "test_prio <max_value>",    0},
+    {"test_proc", test_processes, "test_proc <max_processes>", 1},
+    {"test_prio", test_prio,      "test_prio <max_value>",    1},
     {"test_sync", test_sync,      "test_sync <n> <use_sem>",  0},
     {0, 0, 0, 0},
 };
@@ -351,7 +351,7 @@ void help(){
     shellPrintString("bmMEM     ->   benchmark de MEM.\n");
     shellPrintString("bmKEY     ->   benchmark de teclado.\n");
     shellPrintString("tron      ->   inicia el juego TRON.\n");
-    shellPrintString("\nTests provistos por la catedra: \n");
+    shellPrintString("\nTests provistos por la catedra (agregar '&' al final para correrlos en background): \n");
     shellPrintString("test_mm <max_memory>       ->   pide y libera bloques chequeando que no se solapen.\n");
     shellPrintString("test_proc <max_processes>  ->   crea, bloquea, desbloquea y mata procesos.\n");
     shellPrintString("test_prio <max_value>      ->   compara tiempos de ejecucion segun prioridad.\n");
@@ -548,11 +548,25 @@ void processLine(char * buff, uint32_t * history_len){
         }
     }
 
+    // Un '&' final lanza el proceso en background
+    uint8_t background = argc > 1 && strcmp(argv[argc - 1], "&") == 0;
+    if(background){
+        argc--;
+    }
+
     for(int i = 0; testCommands[i].name != 0; i++){
         if(strcmp(argv[0], testCommands[i].name) == 0){
             if(!testCommands[i].ready){
-                shellPrintString("Este test requiere procesos y semaforos, aun no implementados.\n");
-            } else if(testCommands[i].function(argc - 1, argv + 1) == -1){
+                shellPrintString("Este test requiere semaforos, aun no implementados.\n");
+                return;
+            }
+
+            int64_t pid = sys_create_process(testCommands[i].function, argv[0], argc - 1, argv + 1, !background);
+            if(pid < 0){
+                shellPrintString("No se pudo crear el proceso.\n");
+            } else if(background){
+                printf("[%d] %s en background\n", (int)pid, argv[0]);
+            } else if(sys_waitpid(pid) == -1){
                 shellPrintString("Uso: ");
                 shellPrintString(testCommands[i].usage);
                 shellNewline();

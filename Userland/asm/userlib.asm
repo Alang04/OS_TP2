@@ -16,6 +16,16 @@ GLOBAL sys_putpixel
 GLOBAL sys_fill_rect
 GLOBAL sys_malloc
 GLOBAL sys_free
+GLOBAL sys_create_process
+GLOBAL sys_exit
+GLOBAL sys_getpid
+GLOBAL sys_ps
+GLOBAL sys_kill
+GLOBAL sys_nice
+GLOBAL sys_block
+GLOBAL sys_unblock
+GLOBAL sys_yield
+GLOBAL sys_waitpid
 GLOBAL gen_invalid_opcode
 
 section .text
@@ -107,6 +117,56 @@ sys_malloc:
 
 sys_free:
 	mov rax, 17
+	int 0x80
+	ret
+
+sys_create_process:
+	mov rax, 18
+	int 0x80
+	ret
+
+sys_exit:
+	mov rax, 19
+	int 0x80
+	ret
+
+sys_getpid:
+	mov rax, 20
+	int 0x80
+	ret
+
+sys_ps:
+	mov rax, 21
+	int 0x80
+	ret
+
+sys_kill:
+	mov rax, 22
+	int 0x80
+	ret
+
+sys_nice:
+	mov rax, 23
+	int 0x80
+	ret
+
+sys_block:
+	mov rax, 24
+	int 0x80
+	ret
+
+sys_unblock:
+	mov rax, 25
+	int 0x80
+	ret
+
+sys_yield:
+	mov rax, 26
+	int 0x80
+	ret
+
+sys_waitpid:
+	mov rax, 27
 	int 0x80
 	ret
 

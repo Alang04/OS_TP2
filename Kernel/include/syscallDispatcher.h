@@ -3,6 +3,7 @@
 
 #include <stdint.h>
 #include "defs.h"
+#include "process.h"
 
 extern void * syscalls[CANT_SYS];
 
@@ -24,5 +25,15 @@ void sys_speaker_start(uint32_t freq);
 void sys_speaker_off(void);
 void * sys_malloc(uint64_t size);
 void sys_free(void * ptr);
+int64_t sys_create_process(ProcessMain entry, const char * name, uint64_t argc, char ** argv, uint8_t foreground);
+void sys_exit(int64_t retValue);
+int64_t sys_getpid(void);
+uint64_t sys_ps(ProcessInfo * buff, uint64_t max);
+int64_t sys_kill(int64_t pid);
+int64_t sys_nice(int64_t pid, uint8_t priority);
+int64_t sys_block(int64_t pid);
+int64_t sys_unblock(int64_t pid);
+void sys_yield(void);
+int64_t sys_waitpid(int64_t pid);
 
 #endif

@@ -6,6 +6,8 @@
 #include "time.h"
 #include "sound.h"
 #include "memoryManager.h"
+#include "process.h"
+#include "scheduler.h"
 
 // Aumenta el tamaño de fuente por defecto
 void sys_increase_fontsize(){
@@ -91,6 +93,46 @@ void sys_free(void * ptr){
     memoryManagerFree(ptr);
 }
 
+int64_t sys_create_process(ProcessMain entry, const char * name, uint64_t argc, char ** argv, uint8_t foreground){
+    return createProcess(entry, name, argc, argv, foreground);
+}
+
+void sys_exit(int64_t retValue){
+    exitProcess(retValue);
+}
+
+int64_t sys_getpid(void){
+    return getPid();
+}
+
+uint64_t sys_ps(ProcessInfo * buff, uint64_t max){
+    return listProcesses(buff, max);
+}
+
+int64_t sys_kill(int64_t pid){
+    return killProcess(pid);
+}
+
+int64_t sys_nice(int64_t pid, uint8_t priority){
+    return setPriority(pid, priority);
+}
+
+int64_t sys_block(int64_t pid){
+    return blockProcess(pid);
+}
+
+int64_t sys_unblock(int64_t pid){
+    return unblockProcess(pid);
+}
+
+void sys_yield(void){
+    forceSwitch();
+}
+
+int64_t sys_waitpid(int64_t pid){
+    return waitProcess(pid);
+}
+
 void * syscalls[CANT_SYS] = {
     &sys_registers,         // 0
     &sys_time,              // 1
@@ -109,5 +151,15 @@ void * syscalls[CANT_SYS] = {
     &sys_putpixel,          // 14
     &sys_fill_rect,         // 15
     &sys_malloc,            // 16
-    &sys_free               // 17
+    &sys_free,              // 17
+    &sys_create_process,    // 18
+    &sys_exit,              // 19
+    &sys_getpid,            // 20
+    &sys_ps,                // 21
+    &sys_kill,              // 22
+    &sys_nice,              // 23
+    &sys_block,             // 24
+    &sys_unblock,           // 25
+    &sys_yield,             // 26
+    &sys_waitpid            // 27
 };

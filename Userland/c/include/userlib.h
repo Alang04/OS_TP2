@@ -43,6 +43,23 @@ typedef struct{
     uint64_t fd;
 }RedrawStruct;
 
+#define MAX_PROCESS_NAME 32
+
+typedef int64_t (*ProcessMain)(uint64_t argc, char ** argv);
+
+// Debe coincidir con ProcessInfo de Kernel/include/process.h
+typedef struct{
+    int64_t pid;
+    int64_t ppid;
+    char name[MAX_PROCESS_NAME];
+    uint8_t priority;
+    uint8_t foreground;
+    uint8_t state;
+    uint64_t stackBase;
+    uint64_t rsp;
+    uint64_t rbp;
+}ProcessInfo;
+
 void redraw_reset(void);
 void redraw_append_char(char c, uint64_t fd);
 uint64_t sys_write(uint64_t fd, const char * buff, uint64_t count);
@@ -63,6 +80,16 @@ void sys_putpixel(uint32_t color, uint64_t x, uint64_t y);
 void sys_fill_rect(uint64_t x, uint64_t y, uint64_t w, uint64_t h, uint32_t color);
 void * sys_malloc(uint64_t size);
 void sys_free(void * ptr);
+int64_t sys_create_process(ProcessMain entry, const char * name, uint64_t argc, char ** argv, uint8_t foreground);
+void sys_exit(int64_t retValue);
+int64_t sys_getpid(void);
+uint64_t sys_ps(ProcessInfo * buff, uint64_t max);
+int64_t sys_kill(int64_t pid);
+int64_t sys_nice(int64_t pid, uint8_t priority);
+int64_t sys_block(int64_t pid);
+int64_t sys_unblock(int64_t pid);
+void sys_yield(void);
+int64_t sys_waitpid(int64_t pid);
 
 // Mini libc usada por los tests de la catedra (c/libc.c; memset en _loader.c)
 void * malloc(size_t size);

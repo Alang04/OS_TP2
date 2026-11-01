@@ -6,9 +6,9 @@
 
 #define TOTAL_PROCESSES 3
 
-#define LOWEST 0  // TODO: Change as required
-#define MEDIUM 1  // TODO: Change as required
-#define HIGHEST 2 // TODO: Change as required
+#define LOWEST 0  // MIN_PRIORITY del kernel
+#define MEDIUM 2  // DEFAULT_PRIORITY del kernel
+#define HIGHEST 4 // MAX_PRIORITY del kernel
 
 static int64_t prio[TOTAL_PROCESSES] = {LOWEST, MEDIUM, HIGHEST};
 

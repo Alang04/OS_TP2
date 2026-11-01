@@ -12,6 +12,8 @@ GLOBAL _irq03Handler
 GLOBAL _irq04Handler
 GLOBAL _irq05Handler
 GLOBAL _irq128Handler
+GLOBAL _yieldHandler
+GLOBAL forceSwitch
 GLOBAL _exception0Handler
 GLOBAL _exception6Handler
 GLOBAL syscallIntRoutine
@@ -21,7 +23,9 @@ GLOBAL kbd_scancode_read
 EXTERN irqDispatcher
 EXTERN int80Dispatcher
 EXTERN exceptionDispatcher
-EXTERN getStackBase
+EXTERN scheduleTick
+EXTERN scheduleYield
+EXTERN killCurrentOnException
 EXTERN syscalls
 
 SECTION .text
@@ -126,12 +130,8 @@ SECTION .text
 	mov rsi, rsp
 	call exceptionDispatcher
 
-popState
-	call getStackBase	
-
-	mov qword [rsp+8*3], rax				
-	mov qword [rsp], userland	
-	iretq
+	; Se mata al proceso que fallo y se pasa al siguiente (no retorna)
+	call killCurrentOnException
 %endmacro
 
 _hlt:
@@ -170,9 +170,37 @@ picSlaveMask:
     	pop     rbp
     	retn
 
-;8254 Timer (Timer Tick)
+;8254 Timer (Timer Tick): cuenta el tick y le pide al scheduler el proximo proceso
 _irq00Handler:
-	irqHandlerMaster 0
+	pushState
+
+	mov rdi, 0
+	call irqDispatcher
+
+	mov rdi, rsp
+	call scheduleTick
+	mov rsp, rax
+
+	mov al, 20h
+	out 20h, al
+
+	popState
+	iretq
+
+; int 0x81: cambio de contexto forzado (yield / bloqueo). No es una IRQ, no lleva EOI
+_yieldHandler:
+	pushState
+
+	mov rdi, rsp
+	call scheduleYield
+	mov rsp, rax
+
+	popState
+	iretq
+
+forceSwitch:
+	int 0x81
+	ret
 
 ;Keyboard
 ; IRQ1 - Teclado: captura scancode y opcionalmente snapshot de registros.
@@ -270,15 +298,16 @@ _exception6Handler:
 _irq128Handler:
 	pushState
 	; validar índice de syscall (usar el mismo valor que CANT_SYS en defs.h)
-	cmp rax, 18
+	cmp rax, 28
 	jge .syscall_end
 	call [syscalls + rax * 8]
+	; El retorno se guarda en el rax salvado del propio stack: una syscall puede
+	; ceder el CPU, asi que no se puede usar una variable global
+	mov [rsp + 14*8], rax
 
 .syscall_end:
-    mov [aux], rax
-    popState
-    mov rax, [aux]
-    iretq
+	popState
+	iretq
 
 haltcpu:
 	cli
@@ -296,11 +325,9 @@ kbd_scancode_read:
 	ret
 
 SECTION .bss
-	aux resq 1
 	; # de registros
 	regsArray resq 20 
 	pressed_key resq 1
 	SNAPSHOT_KEY equ 0x1D
 
 SECTION .data 
-	userland equ 0x400000 

@@ -30,6 +30,7 @@ void load_idt(){
   setup_IDT_entry(0x00, (uint64_t)&_exception0Handler); // #DE
   setup_IDT_entry(0x06, (uint64_t)&_exception6Handler); // #UD
   setup_IDT_entry(0x80, (uint64_t)&_irq128Handler);     // Syscalls
+  setup_IDT_entry(0x81, (uint64_t)&_yieldHandler);      // Cambio de contexto forzado
 
   // Load IDTR
   IDTR idtr;

@@ -4,6 +4,9 @@
 #include "idtLoader.h"
 #include "kernelApi.h"
 #include "memoryManager.h"
+#include "interrupts.h"
+#include "process.h"
+#include "scheduler.h"
 
 extern uint8_t text;
 extern uint8_t rodata;
@@ -15,11 +18,16 @@ static const uint64_t PageSize = 0x1000;
 static void * const sampleCodeModuleAddress = (void*)0x400000;
 static void * const sampleDataModuleAddress = (void*)0x500000;
 
-typedef int (*EntryPoint)(void);
-
-// Punto de entrada del kernel: transfiere control al módulo de usuario
+// Punto de entrada del kernel: crea idle y la shell como procesos y cede el CPU.
+// El contexto de arranque se descarta en el primer cambio de contexto.
 int main(void){
-	((EntryPoint)sampleCodeModuleAddress)();
+	_cli();
+	initProcesses();
+	createShell((ProcessMain)sampleCodeModuleAddress);
+	initScheduler();
+	forceSwitch();
+
+	haltcpu();	// no deberia alcanzarse
 	return 0;
 }
 
