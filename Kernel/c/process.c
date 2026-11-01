@@ -281,6 +281,24 @@ int64_t unblockProcess(int64_t pid){
     return 0;
 }
 
+void blockCurrentProcess(BlockReason reason){
+    PCB * current = getCurrentProcess();
+    current->state = BLOCKED;
+    current->blockReason = reason;
+    forceSwitch();
+}
+
+int64_t wakeProcess(int64_t pid, BlockReason reason){
+    PCB * p = findProcess(pid);
+    if(p == 0 || p->state != BLOCKED || p->blockReason != reason){
+        return -1;
+    }
+
+    p->state = READY;
+    p->blockReason = BLOCK_NONE;
+    return 0;
+}
+
 int64_t waitProcess(int64_t pid){
     PCB * current = getCurrentProcess();
     PCB * child = findProcess(pid);

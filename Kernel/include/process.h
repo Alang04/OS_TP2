@@ -20,7 +20,7 @@ typedef int64_t (*ProcessMain)(uint64_t argc, char ** argv);
 typedef enum { FREE = 0, READY, RUNNING, BLOCKED, ZOMBIE } ProcessState;
 
 // Motivo del bloqueo: block/unblock de usuario solo actua sobre BLOCK_USER
-typedef enum { BLOCK_NONE = 0, BLOCK_USER, BLOCK_WAIT } BlockReason;
+typedef enum { BLOCK_NONE = 0, BLOCK_USER, BLOCK_WAIT, BLOCK_SEM } BlockReason;
 
 typedef struct {
     int64_t pid;
@@ -67,6 +67,12 @@ int64_t killProcess(int64_t pid);
 int64_t setPriority(int64_t pid, uint8_t priority);
 int64_t blockProcess(int64_t pid);
 int64_t unblockProcess(int64_t pid);
+
+// Bloquea al proceso actual por 'reason' y cede el CPU. Vuelve cuando lo despiertan
+void blockCurrentProcess(BlockReason reason);
+
+// Despierta a 'pid' solo si esta bloqueado por 'reason'. Devuelve 0 si lo desperto, -1 si no
+int64_t wakeProcess(int64_t pid, BlockReason reason);
 
 // Espera a que termine el hijo 'pid' y devuelve su valor de retorno (-1 si no es hijo)
 int64_t waitProcess(int64_t pid);
