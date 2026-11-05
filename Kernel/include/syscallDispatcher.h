@@ -4,6 +4,7 @@
 #include <stdint.h>
 #include "defs.h"
 #include "process.h"
+#include "memoryManager.h"
 
 extern void * syscalls[CANT_SYS];
 
@@ -39,5 +40,6 @@ int64_t sys_sem_open(const char * name, uint64_t initialValue);
 int64_t sys_sem_wait(const char * name);
 int64_t sys_sem_post(const char * name);
 int64_t sys_sem_close(const char * name);
+int64_t sys_mem_info(MemoryManagerStats * info);
 
 #endif

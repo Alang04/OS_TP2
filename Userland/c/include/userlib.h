@@ -60,6 +60,14 @@ typedef struct{
     uint64_t rbp;
 }ProcessInfo;
 
+// Debe coincidir con MemoryManagerStats de Kernel/include/memoryManager.h
+typedef struct{
+    uint64_t totalMemory;
+    uint64_t usedMemory;
+    uint64_t freeMemory;
+    uint64_t blocksUsed;
+}MemoryInfo;
+
 void redraw_reset(void);
 void redraw_append_char(char c, uint64_t fd);
 uint64_t sys_write(uint64_t fd, const char * buff, uint64_t count);
@@ -94,6 +102,7 @@ int64_t sys_sem_open(const char * name, uint64_t initialValue);
 int64_t sys_sem_wait(const char * name);
 int64_t sys_sem_post(const char * name);
 int64_t sys_sem_close(const char * name);
+int64_t sys_mem_info(MemoryInfo * info);
 
 // Mini libc usada por los tests de la catedra (c/libc.c; memset en _loader.c)
 void * malloc(size_t size);

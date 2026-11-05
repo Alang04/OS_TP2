@@ -30,6 +30,7 @@ GLOBAL sys_sem_open
 GLOBAL sys_sem_wait
 GLOBAL sys_sem_post
 GLOBAL sys_sem_close
+GLOBAL sys_mem_info
 GLOBAL gen_invalid_opcode
 
 section .text
@@ -191,6 +192,11 @@ sys_sem_post:
 
 sys_sem_close:
 	mov rax, 31
+	int 0x80
+	ret
+
+sys_mem_info:
+	mov rax, 32
 	int 0x80
 	ret
 
