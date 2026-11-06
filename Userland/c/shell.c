@@ -18,6 +18,15 @@ static void hideCursor(void){
     }
 }
 
+// Libera los hijos en background que ya terminaron y avisa cuales fueron.
+// Sin señales no hay SIGCHLD, asi que se revisa antes de cada prompt
+static void reapBackground(void){
+    int64_t pid;
+    while((pid = sys_wait_nohang()) != -1){
+        printf("[%d] termino\n", (int)pid);
+    }
+}
+
 // Bucle principal de la shell de usuario
 int main(void){
     shellPrintString(WELCOME);
@@ -26,6 +35,7 @@ int main(void){
 
     char buff[BUFF_LENGTH];
     while(1){
+        reapBackground();
         shellPrintString("> ");
         showCursor();
         shellReadLine(buff, BUFF_LENGTH);

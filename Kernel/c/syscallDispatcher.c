@@ -159,6 +159,10 @@ int64_t sys_mem_info(MemoryManagerStats * info){
     return 0;
 }
 
+int64_t sys_wait_nohang(void){
+    return waitAnyChildNoHang();
+}
+
 void * syscalls[CANT_SYS] = {
     &sys_registers,         // 0
     &sys_time,              // 1
@@ -192,5 +196,6 @@ void * syscalls[CANT_SYS] = {
     &sys_sem_wait,          // 29
     &sys_sem_post,          // 30
     &sys_sem_close,         // 31
-    &sys_mem_info           // 32
+    &sys_mem_info,          // 32
+    &sys_wait_nohang        // 33
 };

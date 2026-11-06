@@ -77,6 +77,10 @@ int64_t wakeProcess(int64_t pid, BlockReason reason);
 // Espera a que termine el hijo 'pid' y devuelve su valor de retorno (-1 si no es hijo)
 int64_t waitProcess(int64_t pid);
 
+// Libera un hijo ZOMBIE cualquiera sin bloquearse (como waitpid(-1, WNOHANG)).
+// Devuelve su pid, o -1 si ningun hijo termino
+int64_t waitAnyChildNoHang(void);
+
 // Copia hasta 'max' procesos en buff, devuelve cuantos copio
 uint64_t listProcesses(ProcessInfo * buff, uint64_t max);
 

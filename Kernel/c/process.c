@@ -320,6 +320,23 @@ int64_t waitProcess(int64_t pid){
     return retValue;
 }
 
+int64_t waitAnyChildNoHang(void){
+    PCB * current = getCurrentProcess();
+    if(current == 0){
+        return -1;
+    }
+
+    for(int i = 0; i < MAX_PROCESSES; i++){
+        PCB * p = &processes[i];
+        if(p->state == ZOMBIE && p->ppid == current->pid){
+            int64_t pid = p->pid;
+            freeProcess(p);
+            return pid;
+        }
+    }
+    return -1;
+}
+
 uint64_t listProcesses(ProcessInfo * buff, uint64_t max){
     uint64_t count = 0;
     for(int i = 0; i < MAX_PROCESSES && count < max; i++){

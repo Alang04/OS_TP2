@@ -31,6 +31,7 @@ GLOBAL sys_sem_wait
 GLOBAL sys_sem_post
 GLOBAL sys_sem_close
 GLOBAL sys_mem_info
+GLOBAL sys_wait_nohang
 GLOBAL gen_invalid_opcode
 
 section .text
@@ -197,6 +198,11 @@ sys_sem_close:
 
 sys_mem_info:
 	mov rax, 32
+	int 0x80
+	ret
+
+sys_wait_nohang:
+	mov rax, 33
 	int 0x80
 	ret
 

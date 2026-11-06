@@ -31,12 +31,14 @@ static int parseNumber(const char * str, int64_t * out){
     return 1;
 }
 
-// Imprime 'str' y completa con espacios hasta ocupar 'width' columnas
+// Imprime 'str' y completa con espacios hasta ocupar 'width' columnas.
+// Siempre deja al menos un espacio para que no se pegue con la columna siguiente
 static void printColumn(const char * str, int width){
     int written = printf("%s", str);
-    for(; written < width; written++){
+    do {
         putchar(' ');
-    }
+        written++;
+    } while(written < width);
 }
 
 static void printNumberColumn(uint64_t value, int width){
@@ -102,8 +104,8 @@ int64_t ps(uint64_t argc, char ** argv){
         return 1;
     }
 
-    printColumn("PID", 6);
-    printColumn("PPID", 6);
+    printColumn("PID", 8);
+    printColumn("PPID", 8);
     printColumn("PRIO", 6);
     printColumn("ESTADO", 9);
     printColumn("FG", 4);
@@ -114,11 +116,11 @@ int64_t ps(uint64_t argc, char ** argv){
 
     for(int64_t i = 0; i < count; i++){
         ProcessInfo * p = &list[i];
-        printNumberColumn((uint64_t)p->pid, 6);
+        printNumberColumn((uint64_t)p->pid, 8);
         if(p->ppid < 0){
-            printColumn("-", 6);
+            printColumn("-", 8);
         } else {
-            printNumberColumn((uint64_t)p->ppid, 6);
+            printNumberColumn((uint64_t)p->ppid, 8);
         }
         printNumberColumn(p->priority, 6);
         printColumn(p->state < STATE_COUNT ? stateNames[p->state] : "?", 9);

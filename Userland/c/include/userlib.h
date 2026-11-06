@@ -103,6 +103,7 @@ int64_t sys_sem_wait(const char * name);
 int64_t sys_sem_post(const char * name);
 int64_t sys_sem_close(const char * name);
 int64_t sys_mem_info(MemoryInfo * info);
+int64_t sys_wait_nohang(void);
 
 // Mini libc usada por los tests de la catedra (c/libc.c; memset en _loader.c)
 void * malloc(size_t size);
