@@ -4,6 +4,7 @@
 #include "../tron/include/tron_main.h"
 #include "../c/include/shell.h"
 #include "tests.h"
+#include "apps.h"
 
 static void tron_command_wrapper(void);
 
@@ -24,7 +25,17 @@ static Command commands[] = {
     {0, 0},
 };
 
-static TestCommand testCommands[] = {
+static ProcessCommand appCommands[] = {
+    {"mem",   mem,   "mem"},
+    {"ps",    ps,    "ps"},
+    {"loop",  loop,  "loop [segundos]"},
+    {"kill",  kill,  "kill <pid>"},
+    {"nice",  nice,  "nice <pid> <prioridad 0-4>"},
+    {"block", block, "block <pid>"},
+    {0, 0, 0},
+};
+
+static ProcessCommand testCommands[] = {
     {"test_mm",   test_mm,        "test_mm <max_memory>"},
     {"test_proc", test_processes, "test_proc <max_processes>"},
     {"test_prio", test_prio,      "test_prio <max_value>"},
@@ -351,6 +362,13 @@ void help(){
     shellPrintString("bmMEM     ->   benchmark de MEM.\n");
     shellPrintString("bmKEY     ->   benchmark de teclado.\n");
     shellPrintString("tron      ->   inicia el juego TRON.\n");
+    shellPrintString("\nProcesos (agregar '&' al final para correrlos en background): \n");
+    shellPrintString("mem                        ->   imprime el estado de la memoria.\n");
+    shellPrintString("ps                         ->   lista los procesos y sus propiedades.\n");
+    shellPrintString("loop [segundos]            ->   saluda con su ID cada cierta cantidad de segundos.\n");
+    shellPrintString("kill <pid>                 ->   mata al proceso indicado.\n");
+    shellPrintString("nice <pid> <prioridad>     ->   cambia la prioridad de un proceso (0 a 4).\n");
+    shellPrintString("block <pid>                ->   alterna un proceso entre bloqueado y listo.\n");
     shellPrintString("\nTests provistos por la catedra (agregar '&' al final para correrlos en background): \n");
     shellPrintString("test_mm <max_memory>       ->   pide y libera bloques chequeando que no se solapen.\n");
     shellPrintString("test_proc <max_processes>  ->   crea, bloquea, desbloquea y mata procesos.\n");
@@ -515,6 +533,29 @@ char getchar(){
     return c;
 }
 
+static ProcessCommand * findProcessCommand(ProcessCommand * table, const char * name){
+    for(int i = 0; table[i].name != 0; i++){
+        if(strcmp(name, table[i].name) == 0){
+            return &table[i];
+        }
+    }
+    return 0;
+}
+
+// Lanza el comando como proceso; en foreground la shell espera a que termine
+static void runProcessCommand(ProcessCommand * command, uint64_t argc, char ** argv, uint8_t background){
+    int64_t pid = sys_create_process(command->function, argv[0], argc - 1, argv + 1, !background);
+    if(pid < 0){
+        shellPrintString("No se pudo crear el proceso.\n");
+    } else if(background){
+        printf("[%d] %s en background\n", (int)pid, argv[0]);
+    } else if(sys_waitpid(pid) == -1){
+        shellPrintString("Uso: ");
+        shellPrintString(command->usage);
+        shellNewline();
+    }
+}
+
 // Busca y ejecuta el comando ingresado
 void processLine(char * buff, uint32_t * history_len){
     if(strlen(buff) == 0){
@@ -554,20 +595,13 @@ void processLine(char * buff, uint32_t * history_len){
         argc--;
     }
 
-    for(int i = 0; testCommands[i].name != 0; i++){
-        if(strcmp(argv[0], testCommands[i].name) == 0){
-            int64_t pid = sys_create_process(testCommands[i].function, argv[0], argc - 1, argv + 1, !background);
-            if(pid < 0){
-                shellPrintString("No se pudo crear el proceso.\n");
-            } else if(background){
-                printf("[%d] %s en background\n", (int)pid, argv[0]);
-            } else if(sys_waitpid(pid) == -1){
-                shellPrintString("Uso: ");
-                shellPrintString(testCommands[i].usage);
-                shellNewline();
-            }
-            return;
-        }
+    ProcessCommand * command = findProcessCommand(appCommands, argv[0]);
+    if(command == 0){
+        command = findProcessCommand(testCommands, argv[0]);
+    }
+    if(command != 0){
+        runProcessCommand(command, argc, argv, background);
+        return;
     }
 
      shellPrintString("Comando no reconocido! Escriba 'help' para ver los comandos disponibles.\n");

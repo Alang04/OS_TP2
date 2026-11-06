@@ -18,14 +18,15 @@ typedef struct Command{
      Runnable function;
 } Command;
 
-typedef int64_t (*TestMain)(uint64_t argc, char *argv[]);
+typedef int64_t (*CommandMain)(uint64_t argc, char *argv[]);
 
-// Tests de la catedra: reciben los argumentos tipeados luego del nombre.
-typedef struct TestCommand{
+// Comandos que corren como un proceso propio (apps y tests de la catedra):
+// reciben los argumentos tipeados luego del nombre.
+typedef struct ProcessCommand{
      char* name;
-     TestMain function;
+     CommandMain function;
      char* usage;
-} TestCommand;
+} ProcessCommand;
 
 void shellPrintString(char *str);
 void shellPutchar(char c, uint64_t fd);
