@@ -5,7 +5,7 @@
 
 void input_init(void){
     char c;
-    while(sys_read(&c, 1) > 0){
+    while(sys_read_timeout(&c, 1, 0) > 0){
         // vaciar buffer de teclado previo
     }
 
@@ -20,9 +20,13 @@ void input_poll(InputEvents *out){
     
     int count = 0;
     int byte_readed = 1;
-    while(count < MAX_KEYS_PER_TICKS && byte_readed && out -> quit_requested == 0){ 
+    // La primera lectura espera bloqueada hasta un tick: asi el loop del juego no gira
+    // en vacio. Las siguientes solo vacian lo que ya este en el buffer
+    uint64_t timeout = INPUT_WAIT_TICKS;
+    while(count < MAX_KEYS_PER_TICKS && byte_readed && out -> quit_requested == 0){
         char c;
-        byte_readed = sys_read(&c, 1);
+        byte_readed = sys_read_timeout(&c, 1, timeout);
+        timeout = 0;
 
         //Si sigue habiendo teclas en el buffer de teclado, sigo leyendo, sino vuelvo al loop principal
         if (byte_readed) {

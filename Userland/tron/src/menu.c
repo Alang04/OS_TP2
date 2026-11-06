@@ -5,6 +5,8 @@
 #include "../include/tron_sound.h"
 #include "../../c/include/userlib.h"
 
+#define MENU_WAIT_TICKS 1
+
 static void put_ch(char c){ sys_write(STDOUT, &c, 1); }
 static void put_str(const char *s){ if(!s) return; for(const char *p=s; *p; ++p) put_ch(*p); }
 
@@ -16,19 +18,15 @@ static void put_num(uint64_t v){
 
 static void clear_screen(void){ sys_clear(); }
 
-static int read_key_nonblock(char *out){
-    int r = sys_read(out, 1);
+// Espera bloqueada una tecla durante a lo sumo MENU_WAIT_TICKS (sin busy waiting),
+// asi el menu puede seguir actualizando la musica aunque no se toque nada
+static int read_key_wait(char *out){
+    int r = sys_read_timeout(out, 1, MENU_WAIT_TICKS);
     if(r <= 0) return 0;
     char c = *out;
     if(c >= 'A' && c <= 'Z') c += ('a' - 'A');
     *out = c;
     return 1;
-}
-
-static void wait_small_delay(void){
-    // Pequeño spin para no saturar el CPU; usamos ticks
-    uint64_t start = sys_ticks();
-    while((int)(sys_ticks() - start) < 1) { /* ~1 tick */ tron_music_update(); }
 }
 
 static int clamp(int v, int lo, int hi){
@@ -52,13 +50,12 @@ static int show_main_menu(void){
 
     for(;;){
         char c;
-        if(read_key_nonblock(&c)){
+        if(read_key_wait(&c)){
             if(c == '1') return 1;
             if(c == '2') return 2;
             if(c == 'q') return 0; // salir
         }
         tron_music_update();
-        wait_small_delay();
     }
 }
 
@@ -78,7 +75,7 @@ static int submenu_one_player(MenuConfig *cfg){
         put_str("  [enter] Comenzar    [b] Volver\n");
 
         char c;
-        if(read_key_nonblock(&c)){
+        if(read_key_wait(&c)){
             if(c == '+'){
                 cfg->ticks_per_step = clamp(cfg->ticks_per_step - 1, 1, 10); // menos ticks => más rápido
             } else if(c == '-'){
@@ -90,7 +87,6 @@ static int submenu_one_player(MenuConfig *cfg){
             }
         }
         tron_music_update();
-        wait_small_delay();
     }
 }
 
@@ -109,7 +105,7 @@ static int submenu_two_players(MenuConfig *cfg){
         put_str("  [enter] Comenzar    [b] Volver\n");
 
         char c;
-        if(read_key_nonblock(&c)){
+        if(read_key_wait(&c)){
             if(c == '+'){
                 cfg->ticks_per_step = clamp(cfg->ticks_per_step - 1, 1, 10);
             } else if(c == '-'){
@@ -121,7 +117,6 @@ static int submenu_two_players(MenuConfig *cfg){
             }
         }
         tron_music_update();
-        wait_small_delay();
     }
 }
 

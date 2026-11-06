@@ -32,6 +32,7 @@ GLOBAL sys_sem_post
 GLOBAL sys_sem_close
 GLOBAL sys_mem_info
 GLOBAL sys_wait_nohang
+GLOBAL sys_read_timeout
 GLOBAL gen_invalid_opcode
 
 section .text
@@ -203,6 +204,11 @@ sys_mem_info:
 
 sys_wait_nohang:
 	mov rax, 33
+	int 0x80
+	ret
+
+sys_read_timeout:
+	mov rax, 34
 	int 0x80
 	ret
 

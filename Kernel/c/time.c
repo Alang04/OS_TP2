@@ -1,5 +1,6 @@
 #include "time.h"
 #include "interrupts.h"
+#include "process.h"
 
 unsigned char getSeconds(void);
 unsigned char getMinutes(void);
@@ -40,8 +41,10 @@ void time(unsigned char *buff){
 	buff[2] = getSeconds();
 }
 
-// Incrementa el contador en cada interrupción del PIT
+// Incrementa el contador en cada interrupción del PIT y despierta a los
+// procesos cuyo tiempo de espera se cumplio
 void timer_handler(){
 	ticks++;
+	wakeExpiredProcesses(ticks);
 }
 

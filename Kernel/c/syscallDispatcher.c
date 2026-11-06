@@ -35,8 +35,14 @@ uint64_t sys_write(uint64_t fd, const char * buff, uint64_t count){
     return count;
 }
 
+// Bloquea hasta que haya al menos un caracter
 uint64_t sys_read(char * buff, uint64_t count){
-   return readKeyBuff(buff, count);
+   return readKeyboard(buff, count, NO_TIMEOUT);
+}
+
+// Como sys_read, pero espera como maximo 'timeout' ticks (0: no espera). Devuelve 0 si se vencio
+uint64_t sys_read_timeout(char * buff, uint64_t count, uint64_t timeout){
+   return readKeyboard(buff, count, timeout);
 }
 
 void sys_date(uint8_t * buff){
@@ -197,5 +203,6 @@ void * syscalls[CANT_SYS] = {
     &sys_sem_post,          // 30
     &sys_sem_close,         // 31
     &sys_mem_info,          // 32
-    &sys_wait_nohang        // 33
+    &sys_wait_nohang,       // 33
+    &sys_read_timeout       // 34
 };

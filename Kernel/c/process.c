@@ -179,6 +179,7 @@ int64_t createProcess(ProcessMain entry, const char * name, uint64_t argc, char 
     p->blockReason = BLOCK_NONE;
     p->waitingFor = NO_PID;
     p->retValue = 0;
+    p->wakeTick = 0;
     p->stackBase = stack;
     p->argv = args;
 
@@ -288,6 +289,13 @@ void blockCurrentProcess(BlockReason reason){
     forceSwitch();
 }
 
+void blockCurrentProcessUntil(BlockReason reason, uint64_t wakeTick){
+    PCB * current = getCurrentProcess();
+    current->wakeTick = wakeTick;
+    blockCurrentProcess(reason);
+    current->wakeTick = 0;
+}
+
 int64_t wakeProcess(int64_t pid, BlockReason reason){
     PCB * p = findProcess(pid);
     if(p == 0 || p->state != BLOCKED || p->blockReason != reason){
@@ -297,6 +305,28 @@ int64_t wakeProcess(int64_t pid, BlockReason reason){
     p->state = READY;
     p->blockReason = BLOCK_NONE;
     return 0;
+}
+
+void wakeAllProcesses(BlockReason reason){
+    for(int i = 0; i < MAX_PROCESSES; i++){
+        PCB * p = &processes[i];
+        if(p->state == BLOCKED && p->blockReason == reason){
+            p->state = READY;
+            p->blockReason = BLOCK_NONE;
+            p->wakeTick = 0;    // si no, un block posterior lo despertaria por tiempo
+        }
+    }
+}
+
+void wakeExpiredProcesses(uint64_t now){
+    for(int i = 0; i < MAX_PROCESSES; i++){
+        PCB * p = &processes[i];
+        if(p->state == BLOCKED && p->wakeTick != 0 && now >= p->wakeTick){
+            p->state = READY;
+            p->blockReason = BLOCK_NONE;
+            p->wakeTick = 0;
+        }
+    }
 }
 
 int64_t waitProcess(int64_t pid){

@@ -526,10 +526,10 @@ uint64_t putchar(char c){
     return sys_write(STDOUT, buff, 1);
 }
 
+// Bloquea hasta leer un caracter
 char getchar(){
     char c;
-    while(sys_read(&c, 1) == 0)
-        sys_yield();
+    sys_read(&c, 1);
     return c;
 }
 

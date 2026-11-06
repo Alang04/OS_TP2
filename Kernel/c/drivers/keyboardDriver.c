@@ -3,6 +3,8 @@
 #include "../include/naiveConsole.h"
 #include "../include/defs.h"
 #include "../include/lib.h"
+#include "../include/process.h"
+#include "../include/time.h"
 #include <stdint.h>
 
 char kbd_min[KBD_LENGTH] = {
@@ -75,6 +77,26 @@ uint64_t readKeyBuff(char * buff, uint64_t count){
     return i;
 }
 
+// Si el buffer esta vacio bloquea al proceso (sin busy waiting) hasta que llegue una
+// tecla o pasen 'timeout' ticks. Se llama desde una syscall: las interrupciones estan
+// deshabilitadas, asi que una tecla no puede llegar entre el chequeo y el bloqueo
+uint64_t readKeyboard(char * buff, uint64_t count, uint64_t timeout){
+    if(count == 0){
+        return 0;
+    }
+
+    uint64_t deadline = timeout == NO_TIMEOUT ? 0 : deltaTicks() + timeout;
+    // Se vuelve a chequear al despertar: otro proceso pudo haberse llevado la tecla
+    while(buff_size == 0 && timeout != 0){
+        if(deadline != 0 && deltaTicks() >= deadline){
+            break;
+        }
+        blockCurrentProcessUntil(BLOCK_KEYBOARD, deadline);
+    }
+
+    return readKeyBuff(buff, count);
+}
+
 // Traduce el scancode leído por la ISR y lo almacena en el buffer
 void handlePressedKey(void){
     uint8_t scancode = kbd_scancode_read();
@@ -94,6 +116,7 @@ void handlePressedKey(void){
     } else if(!(scancode & BREAK_CODE)){
         char c = kbd_manager[(shift + caps) % 2][scancode];
         writeBuff(c);
+        wakeAllProcesses(BLOCK_KEYBOARD);
     }
 }
 

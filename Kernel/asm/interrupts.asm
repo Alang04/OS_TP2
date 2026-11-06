@@ -298,7 +298,7 @@ _exception6Handler:
 _irq128Handler:
 	pushState
 	; validar índice de syscall (usar el mismo valor que CANT_SYS en defs.h)
-	cmp rax, 34
+	cmp rax, 35
 	jge .syscall_end
 	call [syscalls + rax * 8]
 	; El retorno se guarda en el rax salvado del propio stack: una syscall puede

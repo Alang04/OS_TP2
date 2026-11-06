@@ -4,6 +4,7 @@
 #include <stdint.h>
 
 #define CURSOR '_'
+#define BLINK_TICKS 9       // ~0.5 s con el PIT a ~18 Hz
 #define STDIN  0
 #define STDOUT 1
 #define WELCOME "Bienvenido al MASS OS!\n"

@@ -5,6 +5,7 @@
 #include "types.h"
 
 #define MAX_KEYS_PER_TICKS 16
+#define INPUT_WAIT_TICKS 1  // espera maxima por input en cada frame
 
 // Eventos discretos de input por frame/step
 typedef struct {
@@ -21,7 +22,7 @@ typedef struct {
 // Inicializa estado interno del input si fuera necesario
 void input_init(void);
 
-// Lee teclado de forma no bloqueante y llena eventos para un paso
+// Espera input hasta INPUT_WAIT_TICKS y llena eventos para un paso
 void input_poll(InputEvents *out);
 
 // Mapea un caracter crudo a dirección (o devuelve -1 si no aplica)

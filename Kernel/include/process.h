@@ -20,7 +20,7 @@ typedef int64_t (*ProcessMain)(uint64_t argc, char ** argv);
 typedef enum { FREE = 0, READY, RUNNING, BLOCKED, ZOMBIE } ProcessState;
 
 // Motivo del bloqueo: block/unblock de usuario solo actua sobre BLOCK_USER
-typedef enum { BLOCK_NONE = 0, BLOCK_USER, BLOCK_WAIT, BLOCK_SEM } BlockReason;
+typedef enum { BLOCK_NONE = 0, BLOCK_USER, BLOCK_WAIT, BLOCK_SEM, BLOCK_KEYBOARD } BlockReason;
 
 typedef struct {
     int64_t pid;
@@ -32,6 +32,7 @@ typedef struct {
     BlockReason blockReason;
     int64_t waitingFor;     // pid del hijo esperado (BLOCK_WAIT)
     int64_t retValue;       // valor de retorno una vez ZOMBIE
+    uint64_t wakeTick;      // tick en el que se lo despierta aunque siga bloqueado (0 = nunca)
     void * stackBase;       // bloque reservado para el stack (direccion mas baja)
     uint64_t rsp;           // rsp guardado en el ultimo cambio de contexto
     char ** argv;           // copia de los argumentos (un solo bloque)
@@ -71,8 +72,17 @@ int64_t unblockProcess(int64_t pid);
 // Bloquea al proceso actual por 'reason' y cede el CPU. Vuelve cuando lo despiertan
 void blockCurrentProcess(BlockReason reason);
 
+// Como blockCurrentProcess, pero el timer lo despierta al llegar a 'wakeTick' (0 = sin limite)
+void blockCurrentProcessUntil(BlockReason reason, uint64_t wakeTick);
+
 // Despierta a 'pid' solo si esta bloqueado por 'reason'. Devuelve 0 si lo desperto, -1 si no
 int64_t wakeProcess(int64_t pid, BlockReason reason);
+
+// Despierta a todos los procesos bloqueados por 'reason'
+void wakeAllProcesses(BlockReason reason);
+
+// Despierta a los procesos cuyo wakeTick ya paso. Se llama en cada tick del timer
+void wakeExpiredProcesses(uint64_t now);
 
 // Espera a que termine el hijo 'pid' y devuelve su valor de retorno (-1 si no es hijo)
 int64_t waitProcess(int64_t pid);

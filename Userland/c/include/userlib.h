@@ -1,7 +1,8 @@
 // API de solo consumo (userland): wrappers de syscalls y utilitarios mínimos
 // Contrato:
 // - Todas las funciones sys_* invocan al kernel vía int 0x80.
-// - sys_read es no bloqueante (devuelve 0 si no hay input). getchar() bloquea hasta leer 1 byte.
+// - sys_read bloquea (sin busy waiting) hasta que haya input. sys_read_timeout espera como
+//   maximo 'timeout' ticks y devuelve 0 si no llego nada (con timeout 0 no espera).
 // - sys_ticks devuelve ticks desde arranque; tiempo/fecha en BCD.
 // - Redraw buffer registra salida para re-render al cambiar tamaño de fuente.
 #ifndef USERLIB_H
@@ -72,6 +73,7 @@ void redraw_reset(void);
 void redraw_append_char(char c, uint64_t fd);
 uint64_t sys_write(uint64_t fd, const char * buff, uint64_t count);
 uint64_t sys_read(char * buff, uint64_t count);
+uint64_t sys_read_timeout(char * buff, uint64_t count, uint64_t timeout);
 uint64_t sys_registers(char * buff);
 void sys_time(uint8_t * buff);
 void sys_date(uint8_t * buff);

@@ -47,18 +47,18 @@ int main(void){
     return 0;
 }
 
-// Lee una línea desde teclado con cursor parpadeante
+// Lee una línea desde teclado con cursor parpadeante.
+// Espera bloqueado hasta que llegue una tecla o pase BLINK_TICKS: en ese caso
+// solo alterna el cursor y vuelve a esperar (no hay busy waiting)
 void shellReadLine(char * buffer, uint64_t max){
     char c;
     uint32_t idx = 0;
-    uint64_t lastBlink = sys_ticks();
-    const uint64_t blinkInterval = 9; // ~0.5s si 18 ticks ~ 1s
 
     // Asegurar que el cursor esté visible al iniciar la lectura
     showCursor();
 
     while(1){
-        if(sys_read(&c, 1) == 1){
+        if(sys_read_timeout(&c, 1, BLINK_TICKS) == 1){
             if(c == '\n'){
                 break;
             }
@@ -90,23 +90,11 @@ void shellReadLine(char * buffer, uint64_t max){
                     showCursor();
                 }
             }
-
-            // Reiniciar temporizador de parpadeo tras cualquier input
-            lastBlink = sys_ticks();
+        } else if(cursorVisible){
+            // Se vencio la espera sin input: parpadeo del cursor
+            hideCursor();
         } else {
-            // Sin input: gestionar parpadeo
-            uint64_t now = sys_ticks();
-            if(now - lastBlink >= blinkInterval){
-                if(cursorVisible){
-                    hideCursor();
-                } else {
-                    showCursor();
-                }
-                lastBlink = now;
-            }
-            // Sin input se cede el CPU para no gastar el quantum esperando teclas
-            // (provisorio hasta que la lectura de teclado sea bloqueante)
-            sys_yield();
+            showCursor();
         }
     }
 
